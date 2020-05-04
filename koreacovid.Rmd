@@ -1,0 +1,118 @@
+---
+title: "covid 19"
+author: "Dr K"
+date: "5/2/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(tidyverse)
+require(tigerstats)
+require(lubridate)
+kdata <- read.csv(file = 'PatientInfo.csv')
+```
+### Data is from the Patient_Info dataset from South Korea 1 Jan to 1 May 
+### This is contained in a downloadable zip file from kaggle
+
+Some of the data was uncoded for sex - sex must be just male or female
+77 of the data entries were coded sex  as blank, so we omit these.
+state of a patient must be died or alive - we adjust that as well   
+  
+# Question 1 - Is dying independent of sex
+
+
+```{r, include=FALSE}
+kRdata <- filter(kdata,sex !="") %>% mutate(Sex=if_else(sex=="female","F","M")) %>% mutate(result=(if_else(state=="deceased","dead","alive" ))) 
+kRdata$result <- as.factor(kRdata$result)
+kRdata$Sex <- as.factor(kRdata$Sex)
+kRdata <- as.tibble(kRdata)
+```
+
+Table of patients:
+```{r}
+
+# cross tabulation, patient state by gender
+
+with(kRdata, table(Sex, state))
+
+```
+
+## We create two bar charts - one based on frequency and the other on percent
+
+```{r}
+barchartGC(~result + Sex,data=kRdata)
+barchartGC(~result + Sex,data=kRdata,type="percent")
+```
+
+## We see from our row percent numerical data a disparity between men and women  
+
+```{r}
+
+table1 <- xtabs(~result + Sex,data=kRdata)
+rowPerc(table1)
+colPerc(table1)
+
+```
+
+
+## Inferential results are significant above the .005 level
+
+```{r}
+chisq.test(table1)
+chisqtestGC(table1)
+fisher.test(table1)
+```
+## Explanation of Fisher exact test
+
+The odds ratio is the odds of a Female being alive compared to the odds of a male being alive 
+in this case females are 2.3 times more likely to survive than are males.   Alternatively it is the odds of a male death divided by the odds of a female death.  Basically bad news for men.
+
+# Question 2 what is the age distribution of those who contracted Covid contrasted with those who died
+
+Since we have the birth year, we wii simply plot the difference between that and 2020
+we will form two plots one for everyone ane one for just those who died
+
+```{r}
+age = 2020-na.omit(kRdata$birth_year)
+plot(density(age))
+kDead <- filter(kRdata,result=="dead")
+ageDead =2020-na.omit(kDead$birth_year)
+plot(density(ageDead))
+
+```
+
+# Question 3  When did the people get covid
+
+
+```{r}
+# create date with lubridate
+kRdata$confirmed <- ymd(kRdata$confirmed_date)
+ggplot(kRdata,aes(confirmed)) +
+geom_freqpoly(binwidth=2,na.rm=TRUE) +
+ggtitle("Cases confirmed by Date")
+```
+
+# Question 4 Time it goes on
+
+```{r}
+kRdata$kRdataRelease <- ymd(kRdata$released_date)
+kRdata$kRdataDead <- ymd(kRdata$deceased_date)
+```
+
+
+```{r}
+goesOnR <-  as.numeric(kRdata$kRdataRelease) - as.numeric(kRdata$confirmed) 
+plot(density(na.omit(goesOnR)))
+gor <- na.omit(goesOnR)
+hist(gor,main=paste("Time to Recover"))
+goesOnD <-  as.numeric(kRdata$kRdataDead) - as.numeric(kRdata$confirmed) 
+plot(density(na.omit(goesOnD)))
+goD <-na.omit(goesOnD)
+hist(goD,main=paste("Time till Death"))
+```
+
+  
+#### see https://data.library.virginia.edu/working-with-dates-and-time-in-r-using-the-lubridate-package/
