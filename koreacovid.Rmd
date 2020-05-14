@@ -3,16 +3,18 @@ title: "covid 19"
 author: "Dr K"
 date: "5/2/2020"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(digits=2)
 require(tidyverse)
 require(tigerstats)
 require(lubridate)
 kdata <- read.csv(file = 'PatientInfo.csv')
+k19data <- read.csv(file = 'covid19.csv')
 ```
 ### Data is from the Patient_Info dataset from South Korea 1 Jan to 1 May 
 ### This is contained in a downloadable zip file from kaggle
@@ -43,36 +45,45 @@ with(kRdata, table(Sex, state))
 ## We create two bar charts - one based on frequency and the other on percent
 
 ```{r}
-barchartGC(~result + Sex,data=kRdata)
-barchartGC(~result + Sex,data=kRdata,type="percent")
+barchartGC(~result + Sex,data=kRdata, main ="Frequency Bar Chart")
 ```
 
-## We see from our row percent numerical data a disparity between men and women  
+  
+### this bar chart is displaying in total frequency terms our data.  Clearly there are a lot less dead people than alive people as is reflected by the sizes of the bars in the display.  
+
+
+
+```{r}
+barchartGC(~result + Sex,data=kRdata,type="percent", main="Bar chart based on Group Percentages \n the groups are those alive and those dead")
+```
+
+## We see from our row percent numerical data a disparity between men and women with percentage of people alive being 56% Female and 44% Male but in the group of dead people the percentage is 36% Female and 64% Male.   In terms of odds, the odds of a person who is alive being Female `r 56/44 ` of being Male is `r 44/56` wheras the odds in the category of dead people of being Female is `r 36/64` and `r 64/36` of being Male. 
 
 ```{r}
 
 table1 <- xtabs(~result + Sex,data=kRdata)
+table1
 rowPerc(table1)
 colPerc(table1)
 
 ```
 
 
-## Inferential results are significant above the .005 level
+## Inferential results are significant with results in the .001 range level
 
 ```{r}
 chisq.test(table1)
 chisqtestGC(table1)
-fisher.test(table1)
+(fish<-fisher.test(table1))
 ```
 ## Explanation of Fisher exact test
 
-The odds ratio is the odds of a Female being alive compared to the odds of a male being alive 
-in this case females are 2.3 times more likely to survive than are males.   Alternatively it is the odds of a male death divided by the odds of a female death.  Basically bad news for men.
+The odds ratio is the odds of a Female being alive is `r 1831/35` compared to the odds of a male being alive `r 1411/44`. Working it out we get `r ((1831/35)/(1411/44)) ` as our directly computed odds ratio.  The fisher exact test creates a 95% confidence interval of `r fish$conf.int`
+in this case it estimates that females are `r fish$estimate`  times more likely to survive than are males.   Alternatively it is the odds of a male death divided by the odds of a female death.  Basically bad news for men.
 
 # Question 2 what is the age distribution of those who contracted Covid contrasted with those who died
 
-Since we have the birth year, we wii simply plot the difference between that and 2020
+Since we have the birth year, we will simply plot the difference between that and 2020
 we will form two plots one for everyone ane one for just those who died
 
 ```{r}
