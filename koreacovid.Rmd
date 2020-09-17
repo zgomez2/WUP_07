@@ -3,8 +3,8 @@ title: "covid 19"
 author: "Dr K"
 date: "5/2/2020"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,8 +13,7 @@ options(digits=2)
 require(tidyverse)
 require(tigerstats)
 require(lubridate)
-kdata <- read.csv(file = 'PatientInfo.csv')
-k19data <- read.csv(file = 'covid19.csv')
+kRdata <- read.csv(file = 'kRdata.csv')
 ```
 ### Data is from the Patient_Info dataset from South Korea 1 Jan to 1 May 
 ### This is contained in a downloadable zip file from kaggle
@@ -26,19 +25,14 @@ state of a patient must be died or alive - we adjust that as well
 # Question 1 - Is dying independent of sex
 
 
-```{r, include=FALSE}
-kRdata <- filter(kdata,sex !="") %>% mutate(Sex=if_else(sex=="female","F","M")) %>% mutate(result=(if_else(state=="deceased","dead","alive" ))) 
-kRdata$result <- as.factor(kRdata$result)
-kRdata$Sex <- as.factor(kRdata$Sex)
-kRdata <- as.tibble(kRdata)
-```
+
 
 Table of patients:
 ```{r}
 
 # cross tabulation, patient state by gender
 
-with(kRdata, table(Sex, state))
+with(kRdata, table(Sex, result))
 
 ```
 
@@ -53,77 +47,16 @@ barchartGC(~result + Sex,data=kRdata, main ="Frequency Bar Chart")
 
 
 
-```{r}
-barchartGC(~result + Sex,data=kRdata,type="percent", main="Bar chart based on Group Percentages \n the groups are those alive and those dead")
-```
 
-## We see from our row percent numerical data a disparity between men and women with percentage of people alive being 56% Female and 44% Male but in the group of dead people the percentage is 36% Female and 64% Male.   In terms of odds, the odds of a person who is alive being Female `r 56/44 ` of being Male is `r 44/56` wheras the odds in the category of dead people of being Female is `r 36/64` and `r 64/36` of being Male. 
-
-```{r}
-
-table1 <- xtabs(~result + Sex,data=kRdata)
-table1
-rowPerc(table1)
-colPerc(table1)
-
-```
-
-
-## Inferential results are significant with results in the .001 range level
-
-```{r}
-chisq.test(table1)
-chisqtestGC(table1)
-(fish<-fisher.test(table1))
-```
-## Explanation of Fisher exact test
-
-The odds ratio is the odds of a Female being alive is `r 1831/35` compared to the odds of a male being alive `r 1411/44`. Working it out we get `r ((1831/35)/(1411/44)) ` as our directly computed odds ratio.  The fisher exact test creates a 95% confidence interval of `r fish$conf.int`
-in this case it estimates that females are `r fish$estimate`  times more likely to survive than are males.   Alternatively it is the odds of a male death divided by the odds of a female death.  Basically bad news for men.
-
-# Question 2 what is the age distribution of those who contracted Covid contrasted with those who died
-
-Since we have the birth year, we will simply plot the difference between that and 2020
-we will form two plots one for everyone ane one for just those who died
-
-```{r}
-age = 2020-na.omit(kRdata$birth_year)
-plot(density(age))
-kDead <- filter(kRdata,result=="dead")
-ageDead =2020-na.omit(kDead$birth_year)
-plot(density(ageDead))
-
-```
-
-# Question 3  When did the people get covid
-
-
-```{r}
-# create date with lubridate
-kRdata$confirmed <- ymd(kRdata$confirmed_date)
-ggplot(kRdata,aes(confirmed)) +
-geom_freqpoly(binwidth=2,na.rm=TRUE) +
-ggtitle("Cases confirmed by Date")
-```
-
-# Question 4 Time it goes on
-
-```{r}
-kRdata$kRdataRelease <- ymd(kRdata$released_date)
-kRdata$kRdataDead <- ymd(kRdata$deceased_date)
-```
-
-
-```{r}
-goesOnR <-  as.numeric(kRdata$kRdataRelease) - as.numeric(kRdata$confirmed) 
-plot(density(na.omit(goesOnR)))
-gor <- na.omit(goesOnR)
-hist(gor,main=paste("Time to Recover"))
-goesOnD <-  as.numeric(kRdata$kRdataDead) - as.numeric(kRdata$confirmed) 
-plot(density(na.omit(goesOnD)))
-goD <-na.omit(goesOnD)
-hist(goD,main=paste("Time till Death"))
-```
 
   
-#### see https://data.library.virginia.edu/working-with-dates-and-time-in-r-using-the-lubridate-package/
+## Numerical results
+
+
+## Inferential results 
+
+
+
+
+## Conclusions
+
