@@ -1,7 +1,7 @@
----
+;[---
 title: "covid 19"
-author: "Dr K"
-date: "5/2/2020"
+author: "zaira gomez"
+date: "10/19/2020"
 output:
   html_document: default
   pdf_document: default
@@ -35,28 +35,49 @@ Table of patients:
 with(kRdata, table(Sex, result))
 
 ```
-
+The results are 1831 females are live and 1411 men aalive more women than  men are alive 
 ## We create two bar charts - one based on frequency and the other on percent
+
+## Boxplot 
 
 ```{r}
 barchartGC(~result + Sex,data=kRdata, main ="Frequency Bar Chart")
 ```
 
-  
-### this bar chart is displaying in total frequency terms our data.  Clearly there are a lot less dead people than alive people as is reflected by the sizes of the bars in the display.  
 
 
 
+The bar chart is displaying in total frequency terms our data.Clearly there are a lot more dead men than women as is reflected by the size of the graph .
+
+```{r}
+barchartGC(~result + Sex,data=kRdata, type = "percent",main ="Frequency Bar Chart")
+```
+69% of women 41 % are men still alive in the dead groupo 40% of womenare dead and 62% of men are dead .
 
 
-  
-## Numerical results
+## Numerical Results 
+```{r}
+table1 <- xtabs(~result + Sex, data=kRdata)
+rowPerc(table1)
+colPerc(table1)
+```
 
+Of the females who are alive 56% are females and 44% are male .Women who are dead is 44% of females and dead males are 64% .Males are dying a lot more often then females .
 
 ## Inferential results 
+
+```{r}
+chisq.test(table1)
+chisqtestGC(table1)
+fisher.test(table1)
+```
+
+More men are dead thn live compared to women who have less deaths .
 
 
 
 
 ## Conclusions
+We concluded that men are most likely to die the ratio is 2.3 .The males have a higher percentage of deaths than the females .
+
 
